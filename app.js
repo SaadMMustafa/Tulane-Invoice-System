@@ -13,9 +13,6 @@ const firebaseConfig = {
   appId: "1:1055111748634:web:32a4c79b9e9ec4d275c5a3"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
 const DEMO_MODE = Object.values(FIREBASE_CONFIG).some(v => String(v).includes("YOUR_"));
 const state = { user:null, demo:DEMO_MODE, settings:null, products:[], customers:[], invoices:[], editingInvoiceId:null, charts:{}, inlineAddContext:null, access:null };
 const DEFAULT_SETTINGS = {
