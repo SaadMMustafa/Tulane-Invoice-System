@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#82c87e" />
+  <title>TULANE • نظام الفواتير</title>
+  <link rel="icon" id="favicon" href="" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+
+  <div id="loading-screen" class="loading-screen">
+    <div class="loader-logo-wrap"><img class="loader-logo" alt="TULANE" /></div>
+    <div class="spinner"></div>
+    <p>جاري تجهيز النظام…</p>
+  </div>
+
+  <div id="auth-screen" class="auth-screen hidden">
+    <div class="auth-card">
+      <div class="auth-brand"><img alt="TULANE" /><span>TULANE</span></div>
+      <div class="auth-copy">
+        <span class="eyebrow">SMART INVOICE</span>
+        <h1>نظام الفواتير الذكي</h1>
+        <p>أنشئ فواتير مستحضرات التجميل، احفظ منتجاتك وعملاءك، وتابع مبيعاتك في مكان واحد.</p>
+      </div>
+      <button id="google-login" class="btn btn-primary btn-xl"><span class="google-mark">G</span> تسجيل الدخول باستخدام Google</button>
+      <div id="demo-login-note" class="auth-note hidden">وضع المعاينة يعمل محليًا لأن بيانات Firebase لم تُضف بعد.</div>
+      <div class="auth-features">
+        <span>✓ فواتير PDF</span><span>✓ قاعدة منتجات</span><span>✓ تقارير وإحصائيات</span>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="approval-screen" class="auth-screen hidden">
+    <div class="auth-card approval-card">
+      <div class="auth-brand"><img alt="TULANE" /><span>TULANE</span></div>
+      <div class="approval-icon">✓</div>
+      <div class="auth-copy">
+        <span class="eyebrow">ACCESS CONTROL</span>
+        <h1 id="approval-title">الحساب في انتظار موافقة المدير</h1>
+        <p id="approval-message">تم تسجيل طلب دخولك بنجاح. سيظهر لك النظام بعد موافقة مدير الحساب.</p>
+      </div>
+      <div id="approval-email" class="approval-email"></div>
+      <button id="approval-logout" class="btn btn-secondary btn-xl">تسجيل الخروج</button>
+    </div>
+  </div>
+
+  <div id="app" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-block">
+        <img id="sidebar-logo" class="brand-logo" alt="TULANE" />
+        <div class="brand-text"><strong>TULANE</strong><span>Invoice Studio</span></div>
+      </div>
+
+      <nav class="main-nav">
+        <button class="nav-item active" data-view="dashboard"><span class="nav-icon">⌂</span><span>لوحة التحكم</span></button>
+        <button class="nav-item" data-view="new-invoice"><span class="nav-icon">＋</span><span>فاتورة جديدة</span></button>
+        <button class="nav-item" data-view="invoices"><span class="nav-icon">▤</span><span>الفواتير</span></button>
+        <button class="nav-item" data-view="products"><span class="nav-icon">◈</span><span>المنتجات</span></button>
+        <button class="nav-item" data-view="customers"><span class="nav-icon">◎</span><span>العملاء</span></button>
+        <button class="nav-item" data-view="reports"><span class="nav-icon">◔</span><span>الإحصائيات والتقارير</span></button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span><span>الإعدادات</span></button>
+        <button id="logout-btn" class="nav-item danger-nav"><span class="nav-icon">↪</span><span>تسجيل الخروج</span></button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="topbar-left"><button id="menu-toggle" class="icon-btn mobile-only">☰</button><div><span class="topbar-kicker">TULANE INVOICE STUDIO</span><h2 id="page-title">لوحة التحكم</h2></div></div>
+        <div class="topbar-actions">
+          <button id="quick-invoice" class="btn btn-primary hide-on-small">＋ فاتورة جديدة</button>
+          <button id="profile-btn" class="profile-chip"><span class="profile-avatar" id="profile-avatar">T</span><span id="profile-name">المستخدم</span></button>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <!-- Dashboard -->
+        <section class="view active" id="view-dashboard">
+          <div class="hero-card">
+            <div><span class="eyebrow">OVERVIEW</span><h1>مرحبًا بك في TULANE</h1><p>كل ما تحتاجه لإدارة فواتيرك ومبيعاتك بسهولة.</p></div>
+            <div class="hero-actions"><button class="btn btn-light" data-view="new-invoice">إنشاء فاتورة</button><button class="btn btn-ghost-light" data-view="reports">عرض التقارير</button></div>
+          </div>
+          <div class="stats-grid" id="dashboard-stats"></div>
+          <div class="dashboard-grid">
+            <div class="panel chart-panel"><div class="panel-head"><div><h3>المبيعات</h3><p id="sales-chart-label">آخر 7 أيام</p></div><select id="sales-period" class="compact-select"><option value="7">7 أيام</option><option value="30">30 يومًا</option><option value="90">90 يومًا</option></select></div><div class="chart-wrap"><canvas id="sales-chart"></canvas></div></div>
+            <div class="panel"><div class="panel-head"><div><h3>آخر الفواتير</h3><p>أحدث العمليات</p></div><button class="text-btn" data-view="invoices">عرض الكل</button></div><div id="recent-invoices" class="mini-list"></div></div>
+          </div>
+          <div class="dashboard-grid second-row"><div class="panel"><div class="panel-head"><div><h3>الأكثر مبيعًا</h3><p>حسب الكمية</p></div></div><div id="top-products" class="rank-list"></div></div><div class="panel"><div class="panel-head"><div><h3>تنبيهات المخزون</h3><p>للمتابعة السريعة</p></div><button class="text-btn" data-view="products">المنتجات</button></div><div id="stock-alerts" class="mini-list"></div></div></div>
+        </section>
+
+        <!-- New invoice -->
+        <section class="view" id="view-new-invoice">
+          <div class="section-head"><div><span class="eyebrow">SALES</span><h1 id="invoice-form-title">فاتورة جديدة</h1><p>أنشئ فاتورة وصدّرها كملف PDF خلال ثوانٍ.</p></div><div class="section-actions"><button id="invoice-reset" class="btn btn-secondary">إلغاء</button><button id="save-invoice" class="btn btn-primary">حفظ الفاتورة</button></div></div>
+          <div class="invoice-editor-grid">
+            <div class="panel form-panel">
+              <div class="subsection"><div class="subsection-head"><div><h3>بيانات الفاتورة</h3><p>المعلومات الأساسية</p></div><span class="pill" id="invoice-number-pill">يتم الترقيم تلقائيًا</span></div>
+                <div class="form-grid two"><label>اسم العميل<div class="input-with-action"><select id="invoice-customer" class="input"><option value="">عميل نقدي / بدون تسجيل</option></select><button id="quick-add-customer" type="button" class="inline-add-btn">＋ عميل</button></div></label><label>تاريخ الإصدار<input id="invoice-date" type="date" class="input"></label></div>
+                <div class="form-grid two"><label>تاريخ الاستحقاق<input id="invoice-due-date" type="date" class="input"></label><label>حالة الدفع<select id="invoice-payment-status" class="input"><option value="paid">مدفوعة</option><option value="unpaid">غير مدفوعة</option><option value="partial">مدفوعة جزئيًا</option></select></label></div>
+                <div class="form-grid two"><label>طريقة الدفع<select id="invoice-payment-method" class="input"><option value="cash">نقدي</option><option value="card">بطاقة</option><option value="bank">تحويل بنكي</option><option value="wallet">محفظة إلكترونية</option><option value="other">أخرى</option></select></label><label>المبلغ المدفوع<input id="invoice-paid" type="number" min="0" step="0.01" class="input" placeholder="0"></label></div>
+              </div>
+              <div class="subsection"><div class="subsection-head"><div><h3>المنتجات</h3><p>اختر المنتجات وحدد الكمية والسعر</p></div><div class="section-actions"><button id="quick-add-product" class="btn btn-soft" type="button">＋ منتج جديد</button><button id="add-line-item" class="btn btn-soft" type="button">＋ إضافة سطر</button></div></div><div id="invoice-items" class="items-editor"></div></div>
+              <div class="subsection"><div class="subsection-head"><div><h3>التسويات</h3><p>الخصم والضريبة والمصاريف</p></div></div>
+                <div class="form-grid three"><label>الخصم<select id="invoice-discount-type" class="input"><option value="fixed">مبلغ ثابت</option><option value="percent">نسبة مئوية</option></select></label><label>قيمة الخصم<input id="invoice-discount" type="number" min="0" step="0.01" class="input" value="0"></label><label>ضريبة %<input id="invoice-tax" type="number" min="0" step="0.01" class="input" value="0"></label></div>
+                <div class="form-grid two"><label>شحن / مصاريف إضافية<input id="invoice-shipping" type="number" min="0" step="0.01" class="input" value="0"></label><label>ملاحظات<textarea id="invoice-notes" class="input textarea" rows="3" placeholder="ملاحظات تظهر أسفل الفاتورة…"></textarea></label></div>
+              </div>
+            </div>
+            <div class="panel live-preview-panel"><div class="panel-head"><div><h3>معاينة الفاتورة</h3><p>شكل الفاتورة قبل التصدير</p></div><button id="export-current-pdf" class="btn btn-dark">PDF ↧</button></div><div class="invoice-preview-scroll"><div id="invoice-preview" class="invoice-paper"></div></div></div>
+          </div>
+        </section>
+
+        <!-- Invoices -->
+        <section class="view" id="view-invoices">
+          <div class="section-head"><div><span class="eyebrow">DOCUMENTS</span><h1>الفواتير</h1><p>إدارة ومراجعة كل الفواتير المحفوظة.</p></div><button class="btn btn-primary" data-view="new-invoice">＋ فاتورة جديدة</button></div>
+          <div class="panel"><div class="toolbar"><input id="invoice-search" class="input search-input" placeholder="ابحث برقم الفاتورة أو اسم العميل…"><div class="toolbar-group"><input id="invoice-from" type="date" class="input compact-date"><input id="invoice-to" type="date" class="input compact-date"><select id="invoice-status-filter" class="input compact-select"><option value="">كل الحالات</option><option value="paid">مدفوعة</option><option value="unpaid">غير مدفوعة</option><option value="partial">جزئيًا</option></select></div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>رقم الفاتورة</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody id="invoices-table"></tbody></table></div><div id="invoices-empty" class="empty-state hidden">لا توجد فواتير مطابقة.</div></div>
+        </section>
+
+        <!-- Products -->
+        <section class="view" id="view-products">
+          <div class="section-head"><div><span class="eyebrow">CATALOG</span><h1>المنتجات</h1><p>قاعدة منتجات جاهزة للاستخدام في الفواتير.</p></div><button id="add-product-open" class="btn btn-primary">＋ إضافة منتج</button></div>
+          <div class="stats-grid compact-stats" id="product-stats"></div>
+          <div class="panel"><div class="toolbar"><input id="product-search" class="input search-input" placeholder="ابحث عن منتج…"><select id="product-category-filter" class="input compact-select"><option value="">كل التصنيفات</option></select></div><div class="table-wrap"><table class="data-table"><thead><tr><th>المنتج</th><th>الكود</th><th>التصنيف</th><th>السعر</th><th>المخزون</th><th>الإجراء</th></tr></thead><tbody id="products-table"></tbody></table></div><div id="products-empty" class="empty-state hidden">لا توجد منتجات.</div></div>
+        </section>
+
+        <!-- Customers -->
+        <section class="view" id="view-customers">
+          <div class="section-head"><div><span class="eyebrow">CRM</span><h1>العملاء</h1><p>ملف مبسط لكل عميل وإجمالي مشترياته.</p></div><button id="add-customer-open" class="btn btn-primary">＋ إضافة عميل</button></div>
+          <div class="panel"><div class="toolbar"><input id="customer-search" class="input search-input" placeholder="ابحث بالاسم أو الهاتف…"></div><div class="table-wrap"><table class="data-table"><thead><tr><th>العميل</th><th>الهاتف</th><th>البريد</th><th>الفواتير</th><th>إجمالي المشتريات</th><th>الإجراء</th></tr></thead><tbody id="customers-table"></tbody></table></div><div id="customers-empty" class="empty-state hidden">لا توجد بيانات عملاء.</div></div>
+        </section>
+
+        <!-- Reports -->
+        <section class="view" id="view-reports">
+          <div class="section-head"><div><span class="eyebrow">ANALYTICS</span><h1>الإحصائيات والتقارير</h1><p>تحليل مفصل للمبيعات والمنتجات والعملاء.</p></div><div class="toolbar-group"><input id="report-from" type="date" class="input compact-date"><input id="report-to" type="date" class="input compact-date"></div></div>
+          <div class="stats-grid" id="report-stats"></div>
+          <div class="dashboard-grid"><div class="panel chart-panel"><div class="panel-head"><div><h3>اتجاه المبيعات</h3><p>داخل الفترة المحددة</p></div></div><div class="chart-wrap large"><canvas id="report-sales-chart"></canvas></div></div><div class="panel chart-panel"><div class="panel-head"><div><h3>حالة الدفع</h3><p>توزيع الفواتير</p></div></div><div class="chart-wrap donut-wrap"><canvas id="payment-chart"></canvas></div></div></div>
+          <div class="dashboard-grid second-row"><div class="panel"><div class="panel-head"><div><h3>أفضل المنتجات</h3><p>الإيراد والكمية</p></div></div><div id="report-products" class="report-list"></div></div><div class="panel"><div class="panel-head"><div><h3>أفضل العملاء</h3><p>حسب إجمالي الشراء</p></div></div><div id="report-customers" class="report-list"></div></div></div>
+        </section>
+
+        <!-- Settings -->
+        <section class="view" id="view-settings">
+          <div class="section-head"><div><span class="eyebrow">CONTROL CENTER</span><h1>الإعدادات</h1><p>المدير يتحكم في إعدادات النظام وما يظهر للأعضاء.</p></div><button id="save-settings" class="btn btn-primary">حفظ الإعدادات</button></div>
+          <div class="settings-grid">
+            <div class="panel admin-settings-only"><div class="panel-head"><div><h3>بيانات المتجر</h3><p>تظهر هذه البيانات في الفاتورة ويمكن التحكم في ظهور كل عنصر.</p></div></div><div class="settings-form"><label>الاسم / العلامة التجارية<input id="set-business-name" class="input"></label><label>النص أسفل الاسم<input id="set-business-subtitle" class="input" placeholder="د/ أمنية المهدي"></label><label>الهاتف<input id="set-business-phone" class="input"></label><label>البريد الإلكتروني<input id="set-business-email" class="input"></label><label>العنوان<textarea id="set-business-address" class="input textarea" rows="2"></textarea></label><label>الرقم الضريبي<input id="set-tax-number" class="input"></label><div class="logo-setting"><img id="settings-logo" class="settings-logo" alt="logo"><div><strong>اللوجو الحالي</strong><p>اللوجو المرفق هو اللوجو الافتراضي للنظام.</p></div></div></div></div>
+            <div class="panel admin-settings-only"><div class="panel-head"><div><h3>إعدادات الفاتورة</h3><p>كل عنصر يظهر في الـPDF يمكن التحكم في ظهوره.</p></div></div><div class="settings-form">
+              <label>بادئة رقم الفاتورة<input id="set-invoice-prefix" class="input" placeholder="INV-"></label><label>رقم الفاتورة القادم<input id="set-next-number" type="number" min="1" class="input"></label><label>العملة<input id="set-currency" class="input" value="ج.م"></label>
+              <div class="setting-group-title">الهوية والعناوين</div>
+              <label class="switch-row"><span><strong>إظهار اللوجو</strong><small>عرض اللوجو أعلى الفاتورة</small></span><input id="toggle-logo" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار اسم TULANE</strong><small>اسم العلامة التجارية</small></span><input id="toggle-business-name" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار النص أسفل TULANE</strong><small>مثل: د/ أمنية المهدي</small></span><input id="toggle-business-subtitle" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار عنوان الفاتورة</strong><small>مثل: فاتورة بيع</small></span><input id="toggle-invoice-title" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار رقم الفاتورة</strong><small>رقم INV-0001</small></span><input id="toggle-invoice-number" type="checkbox"><span class="switch"></span></label>
+              <div class="setting-group-title">بيانات المتجر</div>
+              <label class="switch-row"><span><strong>إظهار الهاتف</strong><small>بيانات المتجر</small></span><input id="toggle-business-phone" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار البريد الإلكتروني</strong><small>بيانات المتجر</small></span><input id="toggle-business-email" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار العنوان</strong><small>بيانات المتجر</small></span><input id="toggle-business-address" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار الرقم الضريبي</strong><small>بيانات المتجر</small></span><input id="toggle-tax-number" type="checkbox"><span class="switch"></span></label>
+              <div class="setting-group-title">بيانات العميل والدفع</div>
+              <label class="switch-row"><span><strong>إظهار اسم العميل</strong><small>بيانات العميل</small></span><input id="toggle-customer-name" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار هاتف العميل</strong><small>بيانات العميل</small></span><input id="toggle-customer-phone" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار تاريخ الإصدار</strong><small>تاريخ إنشاء الفاتورة</small></span><input id="toggle-issue-date" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار تاريخ الاستحقاق</strong><small>موعد الاستحقاق</small></span><input id="toggle-due-date" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار حالة الدفع</strong><small>مدفوعة / غير مدفوعة / جزئيًا</small></span><input id="toggle-payment-status" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار طريقة الدفع</strong><small>نقدي / بطاقة / تحويل...</small></span><input id="toggle-payment-method" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار المبلغ المدفوع</strong><small>قيمة ما تم تحصيله</small></span><input id="toggle-paid-amount" type="checkbox"><span class="switch"></span></label>
+              <div class="setting-group-title">جدول المنتجات</div>
+              <label class="switch-row"><span><strong>إظهار عمود المنتج</strong><small>اسم المنتج</small></span><input id="toggle-column-product" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار عمود الكمية</strong><small>عدد القطع</small></span><input id="toggle-column-qty" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار عمود السعر</strong><small>سعر الوحدة</small></span><input id="toggle-column-price" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار عمود الإجمالي</strong><small>إجمالي سطر المنتج</small></span><input id="toggle-column-total" type="checkbox"><span class="switch"></span></label>
+              <div class="setting-group-title">الإجماليات والملاحظات</div>
+              <label class="switch-row"><span><strong>إظهار الإجمالي الفرعي</strong><small>قبل التسويات</small></span><input id="toggle-subtotal" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار الخصم</strong><small>بعد تفعيله من خصائص النظام</small></span><input id="toggle-summary-discount" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار الضريبة</strong><small>بعد تفعيل الضريبة</small></span><input id="toggle-summary-tax" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار الشحن والمصاريف</strong><small>بعد تفعيلها</small></span><input id="toggle-summary-shipping" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار الإجمالي النهائي</strong><small>الإجمالي المستحق</small></span><input id="toggle-final-total" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار المتبقي</strong><small>الرصيد غير المسدد</small></span><input id="toggle-remaining" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار الملاحظات</strong><small>ملاحظات الفاتورة</small></span><input id="toggle-notes-print" type="checkbox"><span class="switch"></span></label>
+              <label class="switch-row"><span><strong>إظهار النص الختامي</strong><small>النص الموجود أسفل الفاتورة</small></span><input id="toggle-footer-note" type="checkbox"><span class="switch"></span></label>
+              <label>نص أسفل الفاتورة<textarea id="set-footer-note" class="input textarea" rows="3"></textarea></label>
+            </div></div>
+            <div class="panel admin-settings-only"><div class="panel-head"><div><h3>خصائص النظام</h3><p>يمكنك تعطيل الخصائص التي لا تحتاجها.</p></div></div><div class="settings-form"><label class="switch-row"><span><strong>إدارة العملاء</strong><small>تفعيل قائمة العملاء ومعلوماتهم</small></span><input id="toggle-customers" type="checkbox"><span class="switch"></span></label><label class="switch-row"><span><strong>إدارة المخزون</strong><small>حفظ الرصيد وخصم الكميات عند البيع</small></span><input id="toggle-inventory" type="checkbox"><span class="switch"></span></label><label class="switch-row"><span><strong>الخصومات</strong><small>إظهار حقول الخصم بالفاتورة</small></span><input id="toggle-discounts" type="checkbox"><span class="switch"></span></label><label class="switch-row"><span><strong>الضريبة</strong><small>إظهار حقل الضريبة</small></span><input id="toggle-tax" type="checkbox"><span class="switch"></span></label><label class="switch-row"><span><strong>الشحن والمصاريف</strong><small>إظهار المصاريف الإضافية</small></span><input id="toggle-shipping" type="checkbox"><span class="switch"></span></label><label class="switch-row"><span><strong>الملاحظات</strong><small>إظهار الملاحظات في الفاتورة</small></span><input id="toggle-notes" type="checkbox"><span class="switch"></span></label></div></div>
+            <div id="member-visibility-panel" class="panel admin-only hidden">
+              <div class="panel-head"><div><h3>تحكم المدير في ما يظهر للمستخدمين</h3><p>هذه الخيارات تتحكم في واجهة الأعضاء، بينما يظل إنشاء الفواتير وإضافة العملاء والمنتجات متاحًا لهم.</p></div></div>
+              <div class="settings-form">
+                <div class="setting-group-title">أقسام النظام</div>
+                <label class="switch-row"><span><strong>لوحة التحكم</strong><small>إظهار لوحة المؤشرات للأعضاء</small></span><input id="toggle-member-dashboard" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>الفواتير</strong><small>إظهار قائمة الفواتير المحفوظة للأعضاء</small></span><input id="toggle-member-invoices" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>المنتجات</strong><small>إظهار كتالوج المنتجات للأعضاء</small></span><input id="toggle-member-products" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>العملاء</strong><small>إظهار قاعدة العملاء للأعضاء</small></span><input id="toggle-member-customers" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>الإحصائيات والتقارير</strong><small>إظهار التقارير والتحليلات للأعضاء</small></span><input id="toggle-member-reports" type="checkbox"><span class="switch"></span></label>
+
+                <div class="setting-group-title">إحصائيات لوحة التحكم</div>
+                <label class="switch-row"><span><strong>إجمالي المبيعات</strong><small>إجمالي قيمة جميع الفواتير</small></span><input id="toggle-member-stat-total-sales" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>إجمالي المدفوع</strong><small>إجمالي المبالغ المحصلة</small></span><input id="toggle-member-stat-paid" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>إجمالي المتبقي</strong><small>المبالغ غير المسددة</small></span><input id="toggle-member-stat-remaining" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>مبيعات الشهر</strong><small>مبيعات الشهر الحالي</small></span><input id="toggle-member-stat-month-sales" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>عدد الفواتير</strong><small>عدد الفواتير المشتركة</small></span><input id="toggle-member-stat-invoice-count" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>عدد العملاء</strong><small>إجمالي العملاء</small></span><input id="toggle-member-stat-customer-count" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>عدد المنتجات</strong><small>إجمالي المنتجات</small></span><input id="toggle-member-stat-product-count" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>متوسط الفاتورة</strong><small>متوسط قيمة الفاتورة</small></span><input id="toggle-member-stat-average" type="checkbox"><span class="switch"></span></label>
+
+                <div class="setting-group-title">محتوى لوحة التحكم</div>
+                <label class="switch-row"><span><strong>رسم المبيعات</strong><small>المبيعات اليومية</small></span><input id="toggle-member-dashboard-sales" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>آخر الفواتير</strong><small>آخر العمليات المسجلة</small></span><input id="toggle-member-dashboard-recent" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>الأكثر مبيعًا</strong><small>المنتجات الأعلى مبيعًا</small></span><input id="toggle-member-dashboard-top-products" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>تنبيهات المخزون</strong><small>المنتجات منخفضة المخزون</small></span><input id="toggle-member-dashboard-stock" type="checkbox"><span class="switch"></span></label>
+
+                <div class="setting-group-title">إحصائيات التقارير</div>
+                <label class="switch-row"><span><strong>المبيعات في التقارير</strong><small>إجمالي المبيعات داخل الفترة</small></span><input id="toggle-member-report-stat-sales" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>المحصّل في التقارير</strong><small>إجمالي المدفوع</small></span><input id="toggle-member-report-stat-paid" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>المتبقي في التقارير</strong><small>المبالغ المستحقة</small></span><input id="toggle-member-report-stat-remaining" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>متوسط الفاتورة في التقارير</strong><small>متوسط قيمة الفواتير</small></span><input id="toggle-member-report-stat-average" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>اتجاه المبيعات</strong><small>الرسم البياني للفترة</small></span><input id="toggle-member-report-sales" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>حالة الدفع</strong><small>توزيع الفواتير حسب الدفع</small></span><input id="toggle-member-report-payment" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>أفضل المنتجات</strong><small>المنتجات الأعلى إيرادًا</small></span><input id="toggle-member-report-products" type="checkbox"><span class="switch"></span></label>
+                <label class="switch-row"><span><strong>أفضل العملاء</strong><small>العملاء الأعلى شراءً</small></span><input id="toggle-member-report-customers" type="checkbox"><span class="switch"></span></label>
+              </div>
+            </div>
+            <div id="admin-access-panel" class="panel admin-only hidden"><div class="panel-head"><div><h3>إدارة طلبات الدخول</h3><p>المستخدمون الجدد يحتاجون موافقة المدير قبل الدخول.</p></div><button id="refresh-access-requests" class="btn btn-soft" type="button">تحديث</button></div><div class="table-wrap"><table class="data-table"><thead><tr><th>المستخدم</th><th>البريد</th><th>الحالة</th><th>تاريخ الطلب</th><th>الإجراء</th></tr></thead><tbody id="access-requests-table"></tbody></table></div><div id="access-requests-empty" class="empty-state hidden">لا توجد طلبات معلقة.</div></div>
+            <div class="panel admin-settings-only"><div class="panel-head"><div><h3>البيانات</h3><p>أدوات مفيدة للنقل والنسخ الاحتياطي.</p></div></div><div class="data-tools"><button id="export-json" class="btn btn-secondary">تصدير نسخة بيانات JSON</button><button id="import-json" class="btn btn-secondary">استيراد نسخة JSON</button><input id="import-file" type="file" accept="application/json" hidden><div class="danger-zone"><strong>منطقة حساسة</strong><p>حذف البيانات المحلية فقط عند استخدام وضع المعاينة.</p><button id="clear-local" class="btn btn-danger">مسح بيانات المعاينة</button></div></div></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Product modal -->
+  <div id="product-modal" class="modal-backdrop hidden"><div class="modal"><div class="modal-head"><div><h3 id="product-modal-title">إضافة منتج</h3><p>احفظ المنتج ليظهر لاحقًا في الفواتير.</p></div><button class="modal-close" data-close="product-modal">×</button></div><form id="product-form" class="modal-form"><input id="product-id" type="hidden"><label>اسم المنتج<input id="product-name" class="input" required></label><div class="form-grid two"><label>كود المنتج<input id="product-code" class="input"></label><label>التصنيف<input id="product-category" class="input" placeholder="عناية بالبشرة، شعر…"></label></div><div class="form-grid two"><label>السعر الافتراضي<input id="product-price" class="input" type="number" min="0" step="0.01" required></label><label>المخزون<input id="product-stock" class="input" type="number" min="0" step="1" value="0"></label></div><label>حد التنبيه للمخزون<input id="product-low-stock" class="input" type="number" min="0" step="1" value="5"></label><label>ملاحظات<textarea id="product-notes" class="input textarea" rows="2"></textarea></label><div class="modal-actions"><button type="button" class="btn btn-secondary" data-close="product-modal">إلغاء</button><button type="submit" class="btn btn-primary">حفظ المنتج</button></div></form></div></div>
+
+  <!-- Customer modal -->
+  <div id="customer-modal" class="modal-backdrop hidden"><div class="modal"><div class="modal-head"><div><h3 id="customer-modal-title">إضافة عميل</h3><p>بيانات تساعدك على إنشاء الفاتورة بسرعة.</p></div><button class="modal-close" data-close="customer-modal">×</button></div><form id="customer-form" class="modal-form"><input id="customer-id" type="hidden"><label>اسم العميل<input id="customer-name" class="input" required></label><div class="form-grid two"><label>الهاتف<input id="customer-phone" class="input"></label><label>البريد الإلكتروني<input id="customer-email" class="input" type="email"></label></div><label>العنوان<textarea id="customer-address" class="input textarea" rows="2"></textarea></label><label>ملاحظات<textarea id="customer-notes" class="input textarea" rows="2"></textarea></label><div class="modal-actions"><button type="button" class="btn btn-secondary" data-close="customer-modal">إلغاء</button><button type="submit" class="btn btn-primary">حفظ العميل</button></div></form></div></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
