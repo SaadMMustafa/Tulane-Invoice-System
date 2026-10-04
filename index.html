@@ -110,7 +110,23 @@
                 <div class="form-grid two"><label>تاريخ الاستحقاق<input id="invoice-due-date" type="date" class="input"></label><label>حالة الدفع<select id="invoice-payment-status" class="input"><option value="paid">مدفوعة</option><option value="unpaid">غير مدفوعة</option><option value="partial">مدفوعة جزئيًا</option></select></label></div>
                 <div class="form-grid two"><label>طريقة الدفع<select id="invoice-payment-method" class="input"><option value="cash">نقدي</option><option value="card">بطاقة</option><option value="bank">تحويل بنكي</option><option value="wallet">محفظة إلكترونية</option><option value="other">أخرى</option></select></label><label>المبلغ المدفوع<input id="invoice-paid" type="number" min="0" step="0.01" class="input" placeholder="0"></label></div>
               </div>
-              <div class="subsection"><div class="subsection-head"><div><h3>المنتجات</h3><p>اختر المنتجات وحدد الكمية والسعر</p></div><div class="section-actions"><button id="quick-add-product" class="btn btn-soft" type="button">＋ منتج جديد</button><button id="add-line-item" class="btn btn-soft" type="button">＋ إضافة سطر</button></div></div><div id="invoice-items" class="items-editor"></div></div>
+              <div class="subsection">
+  <div class="subsection-head">
+    <div>
+      <h3>المنتجات</h3>
+      <p>اختر المنتجات وحدد الكمية والسعر</p>
+    </div>
+    <div class="section-actions">
+      <button id="quick-add-product" class="btn btn-soft" type="button">＋ منتج جديد</button>
+    </div>
+  </div>
+
+  <div id="invoice-items" class="items-editor"></div>
+
+  <div style="display:flex;justify-content:flex-start;margin-top:12px;">
+    <button id="add-line-item" class="btn btn-soft" type="button">＋ إضافة سطر جديد</button>
+  </div>
+</div>
               <div class="subsection"><div class="subsection-head"><div><h3>التسويات</h3><p>الخصم والضريبة والمصاريف</p></div></div>
                 <div class="form-grid three"><label>الخصم<select id="invoice-discount-type" class="input"><option value="fixed">مبلغ ثابت</option><option value="percent">نسبة مئوية</option></select></label><label>قيمة الخصم<input id="invoice-discount" type="number" min="0" step="0.01" class="input" value="0"></label><label>ضريبة %<input id="invoice-tax" type="number" min="0" step="0.01" class="input" value="0"></label></div>
                 <div class="form-grid two"><label>شحن / مصاريف إضافية<input id="invoice-shipping" type="number" min="0" step="0.01" class="input" value="0"></label><label>ملاحظات<textarea id="invoice-notes" class="input textarea" rows="3" placeholder="ملاحظات تظهر أسفل الفاتورة…"></textarea></label></div>
