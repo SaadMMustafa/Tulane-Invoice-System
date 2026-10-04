@@ -8,7 +8,7 @@
   <link rel="icon" id="favicon" href="" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&family=Tajawal:wght@400;500;700;800&family=Almarai:wght@400;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
@@ -110,23 +110,7 @@
                 <div class="form-grid two"><label>تاريخ الاستحقاق<input id="invoice-due-date" type="date" class="input"></label><label>حالة الدفع<select id="invoice-payment-status" class="input"><option value="paid">مدفوعة</option><option value="unpaid">غير مدفوعة</option><option value="partial">مدفوعة جزئيًا</option></select></label></div>
                 <div class="form-grid two"><label>طريقة الدفع<select id="invoice-payment-method" class="input"><option value="cash">نقدي</option><option value="card">بطاقة</option><option value="bank">تحويل بنكي</option><option value="wallet">محفظة إلكترونية</option><option value="other">أخرى</option></select></label><label>المبلغ المدفوع<input id="invoice-paid" type="number" min="0" step="0.01" class="input" placeholder="0"></label></div>
               </div>
-              <div class="subsection">
-  <div class="subsection-head">
-    <div>
-      <h3>المنتجات</h3>
-      <p>اختر المنتجات وحدد الكمية والسعر</p>
-    </div>
-    <div class="section-actions">
-      <button id="quick-add-product" class="btn btn-soft" type="button">＋ منتج جديد</button>
-    </div>
-  </div>
-
-  <div id="invoice-items" class="items-editor"></div>
-
-  <div style="display:flex;justify-content:flex-start;margin-top:12px;">
-    <button id="add-line-item" class="btn btn-soft" type="button">＋ إضافة سطر جديد</button>
-  </div>
-</div>
+              <div class="subsection"><div class="subsection-head"><div><h3>المنتجات</h3><p>اختر المنتجات وحدد الكمية والسعر</p></div><div class="section-actions"><button id="quick-add-product" class="btn btn-soft" type="button">＋ منتج جديد</button><button id="add-line-item" class="btn btn-soft" type="button">＋ إضافة سطر</button></div></div><div id="invoice-items" class="items-editor"></div></div>
               <div class="subsection"><div class="subsection-head"><div><h3>التسويات</h3><p>الخصم والضريبة والمصاريف</p></div></div>
                 <div class="form-grid three"><label>الخصم<select id="invoice-discount-type" class="input"><option value="fixed">مبلغ ثابت</option><option value="percent">نسبة مئوية</option></select></label><label>قيمة الخصم<input id="invoice-discount" type="number" min="0" step="0.01" class="input" value="0"></label><label>ضريبة %<input id="invoice-tax" type="number" min="0" step="0.01" class="input" value="0"></label></div>
                 <div class="form-grid two"><label>شحن / مصاريف إضافية<input id="invoice-shipping" type="number" min="0" step="0.01" class="input" value="0"></label><label>ملاحظات<textarea id="invoice-notes" class="input textarea" rows="3" placeholder="ملاحظات تظهر أسفل الفاتورة…"></textarea></label></div>
@@ -204,6 +188,28 @@
               <label class="switch-row"><span><strong>إظهار الملاحظات</strong><small>ملاحظات الفاتورة</small></span><input id="toggle-notes-print" type="checkbox"><span class="switch"></span></label>
               <label class="switch-row"><span><strong>إظهار النص الختامي</strong><small>النص الموجود أسفل الفاتورة</small></span><input id="toggle-footer-note" type="checkbox"><span class="switch"></span></label>
               <label>نص أسفل الفاتورة<textarea id="set-footer-note" class="input textarea" rows="3"></textarea></label>
+            </div></div>
+            <div class="panel admin-settings-only invoice-style-panel"><div class="panel-head"><div><h3>تنسيق الفاتورة</h3><p>تحكم في حجم الخطوط والألوان وشكل الفاتورة النهائية عند التصدير PDF.</p></div><button id="reset-invoice-style" class="btn btn-soft" type="button">استعادة الافتراضي</button></div><div class="settings-form">
+              <div class="setting-group-title">الخط العام</div>
+              <label>نوع خط الفاتورة<select id="style-font" class="input"><option value="Cairo">Cairo — خط عصري</option><option value="Tajawal">Tajawal — خط نظيف</option><option value="Almarai">Almarai — خط واضح</option><option value="Amiri">Amiri — خط نسخي كلاسيكي</option></select></label>
+              <div class="setting-group-title">حجم الخطوط</div>
+              <label class="range-row"><span><strong>اسم المتجر</strong><small>الاسم الظاهر أعلى الفاتورة</small></span><input id="style-brand-size" type="range" min="12" max="32" step="1"><output id="style-brand-size-val" class="range-val"></output></label>
+              <label class="range-row"><span><strong>النص أسفل الاسم</strong><small>مثل: د/ أمنية المهدي</small></span><input id="style-subtitle-size" type="range" min="8" max="20" step="1"><output id="style-subtitle-size-val" class="range-val"></output></label>
+              <label class="range-row"><span><strong>عنوان الفاتورة</strong><small>مثل: فاتورة بيع</small></span><input id="style-title-size" type="range" min="14" max="40" step="1"><output id="style-title-size-val" class="range-val"></output></label>
+              <label class="range-row"><span><strong>رقم الفاتورة والتاريخ</strong><small>بيانات أعلى اليسار</small></span><input id="style-number-size" type="range" min="8" max="18" step="1"><output id="style-number-size-val" class="range-val"></output></label>
+              <label class="range-row"><span><strong>بيانات العميل</strong><small>الاسم والهاتف وحالة الدفع</small></span><input id="style-info-size" type="range" min="8" max="16" step="1"><output id="style-info-size-val" class="range-val"></output></label>
+              <label class="range-row"><span><strong>جدول المنتجات</strong><small>أسماء المنتجات والأسعار</small></span><input id="style-table-size" type="range" min="7" max="14" step="1"><output id="style-table-size-val" class="range-val"></output></label>
+              <label class="range-row"><span><strong>سطور الإجماليات</strong><small>الفرعي والخصم والضريبة</small></span><input id="style-totals-size" type="range" min="8" max="16" step="1"><output id="style-totals-size-val" class="range-val"></output></label>
+              <label class="range-row"><span><strong>الإجمالي النهائي</strong><small>المبلغ المستحق</small></span><input id="style-grand-size" type="range" min="10" max="24" step="1"><output id="style-grand-size-val" class="range-val"></output></label>
+              <label class="range-row"><span><strong>التذييل</strong><small>الملاحظات ونص الشكر</small></span><input id="style-footer-size" type="range" min="6" max="14" step="1"><output id="style-footer-size-val" class="range-val"></output></label>
+              <div class="setting-group-title">الألوان</div>
+              <label class="color-row"><span><strong>اللون الأساسي</strong><small>الإجمالي النهائي ونص رأس الجدول</small></span><input id="style-color-accent" type="color" class="color-input"></label>
+              <label class="color-row"><span><strong>لون الخلفية الفاتح</strong><small>خلفية رأس الجدول وخط الترويسة</small></span><input id="style-color-accent-soft" type="color" class="color-input"></label>
+              <div class="setting-group-title">التخطيط</div>
+              <label class="range-row"><span><strong>عرض اللوجو</strong><small>حجم اللوجو أعلى الفاتورة</small></span><input id="style-logo-width" type="range" min="30" max="160" step="1"><output id="style-logo-width-val" class="range-val"></output></label>
+              <label class="range-row"><span><strong>هامش الصفحة</strong><small>المسافة حول محتوى الفاتورة في PDF</small></span><input id="style-page-pad" type="range" min="20" max="70" step="1"><output id="style-page-pad-val" class="range-val"></output></label>
+              <label class="range-row"><span><strong>عرض صندوق الإجماليات</strong><small>نسبة العرض من صفحة PDF</small></span><input id="style-totals-width" type="range" min="40" max="100" step="1"><output id="style-totals-width-val" class="range-val"></output></label>
+              <div class="style-preview-block"><div class="setting-group-title">معاينة مباشرة</div><div id="invoice-style-preview"></div></div>
             </div></div>
             <div class="panel admin-settings-only"><div class="panel-head"><div><h3>خصائص النظام</h3><p>يمكنك تعطيل الخصائص التي لا تحتاجها.</p></div></div><div class="settings-form"><label class="switch-row"><span><strong>إدارة العملاء</strong><small>تفعيل قائمة العملاء ومعلوماتهم</small></span><input id="toggle-customers" type="checkbox"><span class="switch"></span></label><label class="switch-row"><span><strong>إدارة المخزون</strong><small>حفظ الرصيد وخصم الكميات عند البيع</small></span><input id="toggle-inventory" type="checkbox"><span class="switch"></span></label><label class="switch-row"><span><strong>الخصومات</strong><small>إظهار حقول الخصم بالفاتورة</small></span><input id="toggle-discounts" type="checkbox"><span class="switch"></span></label><label class="switch-row"><span><strong>الضريبة</strong><small>إظهار حقل الضريبة</small></span><input id="toggle-tax" type="checkbox"><span class="switch"></span></label><label class="switch-row"><span><strong>الشحن والمصاريف</strong><small>إظهار المصاريف الإضافية</small></span><input id="toggle-shipping" type="checkbox"><span class="switch"></span></label><label class="switch-row"><span><strong>الملاحظات</strong><small>إظهار الملاحظات في الفاتورة</small></span><input id="toggle-notes" type="checkbox"><span class="switch"></span></label></div></div>
             <div id="member-visibility-panel" class="panel admin-only hidden">
