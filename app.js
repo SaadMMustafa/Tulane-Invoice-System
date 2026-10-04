@@ -464,17 +464,28 @@ async function resolveInvoiceProducts(items){
     }
   }
 }
-async function txApplyProductChanges(tx,items,oldItems){
+async function txReadProductChanges(tx,items,oldItems){
   const changes=state.settings.enableInventory?stockDeltas(oldItems||[],items):{};
-  const ids=new Set([...Object.keys(changes),...items.filter(x=>x.productId).map(x=>x.productId)]);
-  for(const pid of ids){
-    const pr=doc(fb.db,`products/${pid}`);const snap=await tx.get(pr);if(!snap.exists())continue;
-    const data=snap.data();const upd={};
-    if(changes[pid]&&data.stock!=null)upd.stock=Math.max(0,Number(data.stock||0)-changes[pid]);
-    const it=items.find(x=>x.productId===pid);
-    if(it&&Math.abs(Number(data.price||0)-Number(it.price||0))>1e-9){upd.price=Number(it.price);upd.priceHistory=[...(Array.isArray(data.priceHistory)?data.priceHistory:[]),{price:Number(it.price),at:Date.now()}];}
-    if(Object.keys(upd).length)tx.update(pr,upd);
-  }
+  const ids=[...new Set([...Object.keys(changes),...items.filter(x=>x.productId).map(x=>x.productId)])];
+  const entries=ids.map(pid=>({pid,ref:doc(fb.db,`products/${pid}`)}));
+  const snapshots=await Promise.all(entries.map(entry=>tx.get(entry.ref)));
+  return {changes,entries,snapshots,items};
+}
+function txWriteProductChanges(tx,readData){
+  const {changes,entries,snapshots,items}=readData;
+  entries.forEach((entry,index)=>{
+    const snap=snapshots[index];
+    if(!snap.exists())return;
+    const data=snap.data(),upd={};
+    const delta=Number(changes[entry.pid]||0);
+    if(delta&&data.stock!=null)upd.stock=Math.max(0,Number(data.stock||0)-delta);
+    const it=items.find(x=>x.productId===entry.pid);
+    if(it&&Math.abs(Number(data.price||0)-Number(it.price||0))>1e-9){
+      upd.price=Number(it.price);
+      upd.priceHistory=[...(Array.isArray(data.priceHistory)?data.priceHistory:[]),{price:Number(it.price),at:Date.now()}];
+    }
+    if(Object.keys(upd).length)tx.update(entry.ref,upd);
+  });
 }
 
 async function saveInvoice(){
@@ -498,22 +509,33 @@ async function saveInvoice(){
       if(state.editingInvoiceId){
         const ref=dref('invoices',state.editingInvoiceId);
         await runTransaction(fb.db,async tx=>{
-          const oldSnap=await tx.get(ref);if(!oldSnap.exists())throw new Error('الفاتورة غير موجودة');
+          // Firestore: ALL reads must finish before any writes.
+          const oldSnap=await tx.get(ref);
+          if(!oldSnap.exists())throw new Error('الفاتورة غير موجودة');
+
           const old=oldSnap.data();
-          await txApplyProductChanges(tx,t.items,old.items||[]);
+          const productReads=await txReadProductChanges(tx,t.items,old.items||[]);
+
+          // No tx.get() calls after this point.
+          txWriteProductChanges(tx,productReads);
           tx.update(ref,{...base,updatedAt:serverTimestamp()});
         });
       }else{
         const settingsRef=appSettingsRef(),counterRef=invoiceCounterRef(),invoiceRef=doc(col('invoices'));
         await runTransaction(fb.db,async tx=>{
+          // Read settings and counter first, and read all affected products before writing anything.
           const [ss,cs]=await Promise.all([tx.get(settingsRef),tx.get(counterRef)]);
           const s=mergeSettings(ss.exists()?ss.data():state.settings);
           const nextNumber=cs.exists()?Number(cs.data()?.nextNumber||s.nextNumber||1):Number(s.nextNumber||1);
+          const productReads=await txReadProductChanges(tx,t.items,[]);
+
           const number=`${s.invoicePrefix||'INV-'}${String(nextNumber).padStart(4,'0')}`;
+
+          // All reads are finished. Writes start now.
           tx.set(invoiceRef,{...base,number,createdAt:serverTimestamp()});
           tx.set(counterRef,{nextNumber:nextNumber+1,updatedAt:serverTimestamp(),updatedBy:state.user?.uid||''},{merge:true});
           if(isAdmin())tx.set(settingsRef,{...s,nextNumber:nextNumber+1,updatedAt:serverTimestamp(),updatedBy:state.user?.uid||''},{merge:true});
-          await txApplyProductChanges(tx,t.items,[]);
+          txWriteProductChanges(tx,productReads);
         });
       }
     }
